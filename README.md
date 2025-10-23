@@ -1,88 +1,40 @@
-# Wallace Tree Multiplier - 8-bit
+# 8-bit Radix-4 Booth + Wallace Tree Multiplier
 
----
+This repository contains the SystemVerilog RTL implementation of a high-performance, 8-bit signed multiplier. The design is fully parallel and achieves single-cycle latency by combining Radix-4 Booth encoding with a Wallace tree reduction stage.
 
-**Author**: Amaan Sami
+**Key Features:**  
+- Engineered 8-bit signed multiplier in SystemVerilog, achieving single-cycle parallel latency.  
+- Cut partial products by 50% with Radix-4 Booth encoding, reducing adder hardware.  
+- Implemented 4:2 Wallace tree for logarithmic-time summation, minimizing critical path delay.  
 
----
+**Architecture:**  
+- **Partial Product Generator (`Partial_Product_Generator.v`)**  
+  - The 8-bit multiplier Y is appended with a 0 and grouped into four 3-bit overlapping sets.  
+  - Four parallel Radix-4 Booth Encoders (`booth_encoder_radix_4.v`) generate control signals for each set.  
+  - These signals select the correct multiple of the multiplicand M (-2M, -M, 0, +M, +2M), resulting in only 4 partial products instead of 8.  
 
-## 📌 Project Description
+- **Wallace Tree Reduction (`Wallace_Tree_Reduction.v`)**  
+  - The four 16-bit, sign-extended partial products are summed in parallel using a single 4:2 compressor stage.  
+  - This tree uses `full_adder.v` and `half_adder.v` modules to reduce the 4 vectors down to 2 (Sum and Carry) in a single, fast combinational step.  
 
-- This repository contains the Verilog implementation of an **8-bit Wallace Tree Multiplier**.
-- Wallace Tree architecture is used for fast multiplication by reducing the partial products efficiently in parallel stages.
-- The multiplier takes two 8-bit unsigned inputs and produces a 16-bit product.
+- **Final Adder**  
+  - A standard 16-bit carry-propagate adder (`assign Z = X + Y;`) sums the final two vectors from the Wallace tree to produce the final 16-bit product.  
 
----
+**Module Hierarchy:**  
+booth_multiplier_top_module.sv
+│
+├── Partial_Product_Generator.sv
+│ └── booth_encoder_radix_4.sv (x4)
+│
+└── Wallace_Tree_Reduction.sv
+├── full_adder.sv (x16)
+└── half_adder.sv (x3)
 
-## 📂 Files Included
+**Hardware Schematic:**  
+- High-level schematic representing the architecture:  
+![Multiplier Schematic](Schematic.png)  
 
-- `Wallace_Tree_Multiplier.v` — Verilog code for the main Wallace Tree Multiplier.
-- `Wallace_Tree_Multiplier_tb.v` — Verilog testbench to verify the multiplier functionality.
-- `Wallace_Tree_Reduction_diagram` — Diagram showing Wallace Tree reduction stages.
-- `Wallace_Tree_Reduction_Test_Bench_Pic` — Simulation waveform output for verification.
-
----
-
-## ⚙️ Features
-
-- Fully parameterized multiplier (default width: 8-bit).
-- Efficient Wallace Tree reduction using multiple levels of Half Adders and Full Adders.
-- Modular and hierarchical code structure.
-- Synthesizable Verilog code.
-- Multiple test cases included for verification.
-
----
-
-## 🧪 Test Cases
-
-The design has been tested with the following input combinations:
-
-| Multiplier | Multiplicand | Expected Product |
-|-------------|---------------|-------------------|
-| 15 | 10 | 150 |
-| 25 | 40 | 1000 |
-| 100 | 3 | 300 |
-| 255 | 255 | 65025 |
-| 0 | 123 | 0 |
-
----
-
-## 🖥️ Simulation Results
-
-### Wallace Tree Reduction Diagram
-![Wallace Tree Reduction Diagram](Wallace_Tree_Reduction_diagram)
-
-### Testbench Simulation Output
-![Testbench Simulation Output](Wallace_Tree_Reduction_Test_Bench_Pic.png)
-
----
-
-## 🚀 How to Run
-
-1. Clone or download the repository.
-2. Open the Verilog files in your preferred simulator (ModelSim / Questa / Vivado / etc.).
-3. Compile and simulate `Wallace_Tree_Multiplier_tb.v`.
-4. Observe simulation waveforms or console output for verification.
-
----
-
-## 📈 Applications
-
-- Digital Signal Processing (DSP)
-- Arithmetic Logic Units (ALU)
-- Graphics Processing Units (GPU)
-- Embedded and High-Performance Computing
-
----
-
-## 🔧 Future Improvements
-
-- Extend multiplier width (16-bit / 32-bit implementations).
-- Pipelining for higher clock frequency.
-- Hybrid designs (Wallace + Booth combination).
-- Full Synthesis and Layout (ASIC flow).
-
----
-
-> *This project is part of my Verilog/VLSI design learning journey.*
-
+**Testbench Simulation:**  
+- Testbench for functional verification:  
+![Top Module Testbench](top_module_tb.png)
+- Example Test Case: `125 * -127` → checks multiplier output against a golden model and reports PASS/FAIL in the console.
