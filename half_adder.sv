@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 12.06.2025 14:28:11
+// Create Date: 23.10.2025 14:40:21
 // Design Name: 
 // Module Name: half_adder
 // Project Name: 
@@ -21,13 +21,13 @@
 
 
 module half_adder(
-input a,
-input b,
-output sum,
-output carry
-
+input logic X,
+input logic Y,
+output logic Sum,
+output logic Carry
     );
-xor(sum,a,b);
-and(carry,a,b);
-
+ 
+ assign Sum = X^Y;
+ assign Carry = X&Y;   
+ 
 endmodule
